@@ -2,9 +2,9 @@
   "description": "hakaru app",
 
   "variables": {
-    "AWS_ACCOUNT_ID": "139990579284",
-    "subnet_id": "subnet-07f0657a9db896e1a",
-    "security_group_id": "sg-0d880f207a5d393d4"
+    "AWS_ACCOUNT_ID": "004475686363",
+    "subnet_id": "subnet-05e4c420da71f56e1",
+    "security_group_id": "sg-0a46288574d8da689"
   },
 
   "builders": [
@@ -16,9 +16,7 @@
 
       "ami_name": "hakaru - {{isotime \"20060102150405\"}}",
       "ami_description": "hakaru application instance image",
-      "ami_users": [
-        "{{user `AWS_ACCOUNT_ID`}}"
-      ],
+      "ami_users": ["{{user `AWS_ACCOUNT_ID`}}"],
       "tags": {
         "Timestamp": "{{timestamp}}",
         "SourceAMI": "{{ .SourceAMI }}",
