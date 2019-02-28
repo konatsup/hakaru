@@ -3,14 +3,14 @@ package main
 import (
 	_ "database/sql"
 	"fmt"
-	"log"
-	"net/http"
-	"os"
-	"time"
-
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gocraft/dbr"
 	"github.com/gocraft/dbr/dialect"
+	"log"
+	"net/http"
+	"os"
+	"sync"
+	"time"
 )
 
 type eventDocument struct {
@@ -33,11 +33,14 @@ func main() {
 	}
 	defer conn.Close()
 	//conn.SetMaxOpenConns(1)
+	var mutex = &sync.Mutex{}
 
 	go func() {
 		tmp := make([]eventDocument, len(eventCollection))
+		mutex.Lock()
 		copy(tmp, eventCollection)
 		eventCollection = []eventDocument{}
+		mutex.Unlock()
 		t := time.NewTicker(10 * time.Second)
 		for {
 			select {
