@@ -1,12 +1,12 @@
 package main
 
 import (
-	"os"
+	_ "database/sql"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
-	_ "database/sql"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gocraft/dbr"
