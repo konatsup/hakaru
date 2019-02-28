@@ -5,12 +5,15 @@
 
 .PHONY: all clean hakaru amazon-cloudwatch-agent healthcheck
 
-all: clean amazon-cloudwatch-agent hakaru healthcheck
+all: clean amazon-cloudwatch-agent env-setup hakaru healthcheck
 
 clean:
 	-systemctl stop hakaru
 	-systemctl stop amazon-cloudwatch-agent
 	-rm -f /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.toml
+
+env-setup:
+	echo -e "* soft nofile 65536\n* hard nofile 65536\n" >> /etc/security/limits.conf
 
 /opt/hakaru/bin:
 	mkdir -p /opt/hakaru/bin
