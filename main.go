@@ -27,6 +27,13 @@ func main() {
 		dataSourceName = "root:hakaru-pass@tcp(127.0.0.1:13306)/hakaru-db"
 	}
 
+	conn, err := dbr.Open("mysql", dataSourceName, nil)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer conn.Close()
+	//conn.SetMaxOpenConns(1)
+
 	go func() {
 		tmp := make([]eventDocument, len(eventCollection))
 		copy(tmp, eventCollection)
@@ -35,8 +42,6 @@ func main() {
 		for {
 			select {
 			case <-t.C:
-				conn, _ := dbr.Open("mysql", dataSourceName, nil)
-				conn.SetMaxOpenConns(5)
 				sess := conn.NewSession(nil)
 				//tx, err := sess.Begin()
 				//if err != nil {
