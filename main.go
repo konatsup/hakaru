@@ -31,68 +31,52 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+	conn.SetMaxOpenConns(10)
 	defer conn.Close()
-	//conn.SetMaxOpenConns(1)
 	var mutex = &sync.Mutex{}
 
 	go func() {
-		tmp := make([]eventDocument, len(eventCollection))
-		mutex.Lock()
-		copy(tmp, eventCollection)
-		eventCollection = []eventDocument{}
-		mutex.Unlock()
 		t := time.NewTicker(10 * time.Second)
 		for {
 			select {
 			case <-t.C:
-				sess := conn.NewSession(nil)
-				//tx, err := sess.Begin()
-				//if err != nil {
-				//	panic(err.Error())
-				//}
-				//defer tx.RollbackUnlessCommitted()
-				stmt := sess.InsertInto("eventlog").
-					Columns("at", "name", "value")
+				mutex.Lock()
+				tmp := make([]eventDocument, len(eventCollection))
+				copy(tmp, eventCollection)
+				eventCollection = []eventDocument{}
+				mutex.Unlock()
+				fmt.Printf("tmp : %d\n", len(tmp))
+				if len(tmp) > 0 {
+					sess := conn.NewSession(nil)
+					stmt := sess.InsertInto("eventlog").
+						Columns("at", "name", "value")
 
-				for _, value := range tmp {
-					stmt.Record(value)
-				}
+					for _, value := range tmp {
+						stmt.Record(value)
+					}
 
-				buf := dbr.NewBuffer()
-				stmt.Build(dialect.MySQL, buf)
+					buf := dbr.NewBuffer()
+					stmt.Build(dialect.MySQL, buf)
 
-				result, err := stmt.Exec()
-				if err != nil {
-					fmt.Println(err)
-				} else {
-					count, _ := result.RowsAffected()
-					fmt.Println(count)
+					result, err := stmt.Exec()
+					if err != nil {
+						fmt.Println(err)
+					} else {
+						count, _ := result.RowsAffected()
+						fmt.Println(count)
+					}
 				}
 			}
 		}
 		t.Stop()
-		//tx.Commit()
 	}()
 
 	hakaruHandler := func(w http.ResponseWriter, r *http.Request) {
-		//db, err := sql.Open("mysql", dataSourceName)
-		//if err != nil {
-		//	panic(err.Error())
-		//}
-		//defer db.Close()
-
-		//stmt, e := db.Prepare("INSERT INTO eventlog(at, name, value) values(NOW(), ?, ?)")
-		//if e != nil {
-		//	panic(e.Error())
-		//}
-		//
-		//defer stmt.Close()
 
 		name := r.URL.Query().Get("name")
 		value := r.URL.Query().Get("value")
 		eventCollection = append(eventCollection, eventDocument{time.Now(), name, value})
-
-		//_, _ = stmt.Exec(name, value)
+		fmt.Printf("name : %s, value:%s\n", name, value)
 
 		origin := r.Header.Get("Origin")
 		if origin != "" {
